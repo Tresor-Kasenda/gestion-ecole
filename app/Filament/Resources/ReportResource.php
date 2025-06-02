@@ -85,10 +85,6 @@ class ReportResource extends Resource
                     ->label('Option')
                     ->options(fn () => Option::pluck('nom', 'id')->toArray())
                     ->multiple(),
-                SelectFilter::make('classe_id')
-                    ->label('Classe')
-                    ->options(fn () => Classe::pluck('name', 'id')->toArray())
-                    ->multiple(),
                 Filter::make('payment_date')
                     ->form([
                         DatePicker::make('date_from')

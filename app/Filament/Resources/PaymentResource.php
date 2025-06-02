@@ -15,12 +15,14 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rule;
 
 class PaymentResource extends Resource
 {
@@ -93,8 +95,9 @@ class PaymentResource extends Resource
                                     ->dehydrated()
                                     ->helperText(function (Get $get) {
                                         if ($get('has_outstanding') && $get('outstanding_amount') > 0) {
-                                            return "L'élève doit d'abord régler sa dette de " . number_format($get('outstanding_amount'), 2) . ' FC avant de payer pour un nouveau mois';
+                                            return "L'élève doit d'abord régler sa dette de ".number_format($get('outstanding_amount'), 2).' FC avant de payer pour un nouveau mois';
                                         }
+
                                         return null;
                                     })
                                     ->afterStateHydrated(function (Get $get, callable $set) {
@@ -127,11 +130,34 @@ class PaymentResource extends Resource
                                     ->label('Date de paiement')
                                     ->native(false)
                                     ->placeholder('Sélectionner une date')
-                                    ->required(),
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, callable $set, Get $get) {
+                                        if ($state && $get('student_id') && $get('month_id') && $get('type_payment_id')) {
+                                            $existingPayment = Payment::where('student_id', $get('student_id'))
+                                                ->where('month_id', $get('month_id'))
+                                                ->where('type_payment_id', $get('type_payment_id'))
+                                                ->whereDate('payment_date', $state)
+                                                ->first();
+
+                                            if ($existingPayment) {
+                                                $set('payment_date', null);
+                                                Notification::make()
+                                                    ->title('Paiement en double détecté')
+                                                    ->body('Un paiement existe déjà pour cet élève avec ces mêmes critères.')
+                                                    ->danger()
+                                                    ->send();
+                                            }
+                                        }
+                                    }),
                                 TextInput::make('total_amount')
                                     ->label('Montant total à payer')
                                     ->numeric()
-                                    ->required(),
+                                    ->required()
+                                    ->minValue(0)
+                                    ->rules(['regex:/^\d*\.?\d{0,2}$/']) // Permet uniquement 2 décimales
+                                    ->placeholder('0.00')
+                                    ->helperText('Le montant doit être positif et ne peut avoir que 2 décimales'),
 
                                 TextInput::make('amount')
                                     ->label('Montant payé')
