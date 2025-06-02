@@ -12,6 +12,16 @@ class Payment extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'payment_date' => 'date',
+        'due_date' => 'date',
+        'is_completed' => 'boolean'
+    ];
+
+    protected $attributes = [
+        'is_completed' => false
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -52,5 +62,46 @@ class Payment extends Model
     public function calculateBalance()
     {
         return $this->total_amount - $this->amount;
+    }
+
+    public function getBalanceAttribute()
+    {
+        return $this->total_amount - $this->amount;
+    }
+
+    public function getStatusAttribute()
+    {
+        if ($this->is_completed) {
+            return 'completed';
+        }
+        
+        if ($this->due_date && $this->due_date->isPast()) {
+            return 'overdue';
+        }
+        
+        if ($this->balance > 0) {
+            return 'partial';
+        }
+        
+        return 'pending';
+    }
+
+    public function markAsCompleted()
+    {
+        $this->is_completed = true;
+        $this->save();
+    }
+
+    public function scopeOverdue($query)
+    {
+        return $query->where('is_completed', false)
+            ->whereNotNull('due_date')
+            ->where('due_date', '<', now());
+    }
+
+    public function scopePartiallyPaid($query)
+    {
+        return $query->where('is_completed', false)
+            ->whereColumn('amount', '<', 'total_amount');
     }
 }

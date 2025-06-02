@@ -13,6 +13,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+        
+        // Envoie des rappels de paiement tous les jours à 9h
+        $schedule->command('payments:send-reminders')->dailyAt('09:00');
     }
 
     /**
