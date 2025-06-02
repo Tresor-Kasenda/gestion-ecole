@@ -118,7 +118,7 @@ class ReportResource extends Resource
                         ->timeFormat('m y d') // Default time format for naming exports
                         ->defaultFormat('pdf') // xlsx, csv or pdf
                         ->defaultPageOrientation('landscape')
-                        ->withHiddenColumns() //Show the columns which are toggled hidden
+                        ->withHiddenColumns() // Show the columns which are toggled hidden
                         ->fileNameFieldLabel('File Name') // Label for file name input
                         ->formatFieldLabel('Format') // Label for format input
                         ->pageOrientationFieldLabel('Page Orientation') // Label for page orientation input
@@ -126,7 +126,7 @@ class ReportResource extends Resource
                         ->additionalColumnsFieldLabel('Additional Columns') // Label for additional columns input
                         ->additionalColumnsTitleFieldLabel('Title') // Label for additional columns' title input
                         ->additionalColumnsDefaultValueFieldLabel('Default Value') // Label for additional columns' default value input
-                        ->additionalColumnsAddButtonLabel('Add Column') // Label for additional columns' add button
+                        ->additionalColumnsAddButtonLabel('Add Column'), // Label for additional columns' add button
                 ]),
             ]);
     }
